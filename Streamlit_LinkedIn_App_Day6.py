@@ -1,8 +1,18 @@
 import streamlit as st
+from snowflake.snowpark import Session
 from snowflake.snowpark.context import get_active_session
 from snowflake.snowpark.functions import ai_complete
 
 st.title("LinkedIn Post Generator v2")
+
+
+@st.cache_resource
+def open_session():
+    """Use the Snowsight login, or the secrets saved on Streamlit Cloud."""
+    try:
+        return get_active_session()
+    except Exception:
+        return Session.builder.configs(st.secrets["connections"]["snowflake"]).create()
 
 content = st.text_input(
     "Content URL:",
@@ -13,7 +23,7 @@ word_count = st.slider("Approximate word count:", 50, 300, 100)
 
 if st.button("Generate Post"):
     try:
-        session = get_active_session()
+        session = open_session()
         prompt = f"""
         You are an expert social media manager. Generate a LinkedIn post based on the following:
 
